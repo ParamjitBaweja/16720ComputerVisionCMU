@@ -1,0 +1,32 @@
+import argparse
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+from SubtractDominantMotion import SubtractDominantMotion
+import cv2
+
+# write your script here, we recommend the above libraries for making your animation
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--num_iters', type=int, default=1e3, help='number of iterations of Lucas-Kanade')
+parser.add_argument('--threshold', type=float, default=1e-2, help='dp threshold of Lucas-Kanade for terminating optimization')
+parser.add_argument('--tolerance', type=float, default=0.3, help='binary threshold of intensity difference when computing the mask')
+args = parser.parse_args()
+num_iters = args.num_iters
+threshold = args.threshold
+tolerance = args.tolerance
+
+seq = np.load('../data/aerialseq.npy')
+
+
+for i in [29, 59, 89, 119]:
+    mask = SubtractDominantMotion (seq[:,:,i], seq[:,:,i+1], threshold, num_iters, tolerance)
+    image2 = np.copy(seq[:,:,i+1])
+    image2_3_channel = cv2.merge((image2, image2, image2))
+    mask_3_channel = cv2.merge((mask, mask, mask))
+    mask_3_channel [mask==1]=(1, 0, 0)
+    img = cv2.bitwise_or(image2_3_channel, mask_3_channel)
+    plt.imshow(img)
+    plt.show()
+    print(i)
+
